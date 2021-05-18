@@ -1,20 +1,29 @@
 <!-- layouts/_default/_markup/render-image.html -->
+<!-- Developed/Adapted by pduchnovsky, https://pduchnovsky.com/2020/11/native-image-lazy-load/ -->
 
 {{ $img := "" }}
 {{ $source := ( .Destination | safeURL ) }}
 {{ $imgPath := add "/content" $source }}
 {{ if fileExists $imgPath }}
     {{ $img = imageConfig $imgPath }}
+    {{ $imgPath = $source }}
 {{ else }}
     {{ $imgPath := add "/static" $source }}
     {{ if fileExists $imgPath }}
         {{ $img = imageConfig $imgPath }}
+        {{ $imgPath = $source }}
+    {{ end }}
+{{ end }}
+{{ if not $img }}
+    {{ with resources.Get .Destination }}
+        {{ $imgPath = (. | fingerprint).RelPermalink }}
+        {{ $img = . }}
     {{ end }}
 {{ end }}
 
 {{ if $img }}
   <img
-  src="{{ $source }}"
+  src="{{ $imgPath }}"
   alt="{{ htmlUnescape .Text }}"
   loading="lazy"
   width="{{ $img.Width }}"
